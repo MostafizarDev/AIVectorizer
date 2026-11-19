@@ -1,6 +1,6 @@
 # AIVectorizer
 
-A browser-first raster-to-vector web application focused on editable SVG output.
+A web-based raster-to-vector application focused on editable SVG output.
 
 ## Current status
 
@@ -52,7 +52,7 @@ The route uses the official VTracer Node/WebAssembly API to return an SVG docume
 
 ## Important architecture note
 
-The interface is browser-based. The first vectorization implementation calls a same-origin Next.js API route, which executes VTracer's WebAssembly module in the Node.js runtime. This is reliable for a low-cost MVP deployment, but it is not yet fully client-only processing. A future optimization can move conversion into a dedicated browser Web Worker using a browser-targeted WASM build.
+The interface is browser-based, but vectorization currently runs on a same-origin Next.js API route using VTracer's Node.js/WebAssembly build. Uploaded files are processed in the request and are not saved to persistent project storage. This is not yet fully client-only processing. A future optimization can move conversion into a dedicated browser Web Worker using a browser-targeted WASM build.
 
 For public deployment, configure suitable request/body limits and rate limiting. The Vercel deployment plan and function duration limits should be checked against the expected image sizes and user traffic.
 
