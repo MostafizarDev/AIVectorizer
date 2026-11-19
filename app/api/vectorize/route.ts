@@ -125,7 +125,7 @@ function mergeSimilarFills(svg: string, strength: number) {
   // Count how often each fill is used. Frequently used colors are the
   // artwork's main palette and are protected; only low-frequency colors
   // are candidates for merging.
-  const matches = Array.from(svg.matchAll(/<[^>]+\\sfill=["'](#[0-9a-fA-F]{6})["'][^>]*>/g));
+  const matches = Array.from(svg.matchAll(/<[^>]+\sfill=["'](#[0-9a-fA-F]{6})["'][^>]*>/g));
   const counts = new Map<string, number>();
   for (const match of matches) {
     const color = match[1].toLowerCase();
@@ -160,7 +160,7 @@ function mergeSimilarFills(svg: string, strength: number) {
   }
 
   let mergedCount = 0;
-  const output = svg.replace(/(\\sfill=)(["'])(#[0-9a-fA-F]{6})\\2/g,
+  const output = svg.replace(/(\sfill=)(["'])(#[0-9a-fA-F]{6})\2/g,
     (whole, prefix: string, quote: string, color: string) => {
       const replacement = replacements.get(color.toLowerCase());
       if (!replacement) return whole;
