@@ -4,7 +4,11 @@ A web-based raster-to-vector application focused on editable SVG output.
 
 ## Current implementation
 
-- Responsive vector editor workspace
+- Redesigned responsive vector studio workspace
+- Server-side image enhancement pipeline using Sharp
+- Optional 1×, 2×, and 3× Lanczos resampling (bounded to a 4096 px maximum side)
+- Palette-based color reduction before tracing
+- Configurable near-identical SVG fill-color merging after tracing
 - PNG, JPEG, and WebP upload (20 MB application limit)
 - Graphic and photo tracing presets
 - Adjustable color count, detail, speckle reduction, and tracing corner settings
@@ -16,6 +20,10 @@ A web-based raster-to-vector application focused on editable SVG output.
 - Delete selected shape and move selected shape with nudge controls
 - Preview background choices and exact-white SVG shape removal
 - Corner join controls, undo/redo history, and SVG download
+
+## Image enhancement pipeline
+
+The API auto-orients the uploaded raster, resamples it with Lanczos3, applies restrained sharpening, quantizes the raster to the selected palette size, runs VTracer, then merges close solid hex fill colors using a configurable RGB-distance threshold. This is deterministic image processing, not AI super-resolution: it can improve resampling and reduce palette noise, but cannot reconstruct detail that was never present in the source. Strong color merging can remove subtle shading, so use lower values for portraits and photos.
 
 ## Editor limitations
 
