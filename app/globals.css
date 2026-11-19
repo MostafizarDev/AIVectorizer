@@ -819,3 +819,45 @@ button:focus-visible,input:focus-visible,select:focus-visible { outline:2px soli
   .toolbar-vectorize { order:2; }
   .download-toolbar { order:3; }
 }
+
+
+/* Fixed editor viewport and pointer-centred canvas zoom */
+html,body { height:100%; overflow:hidden !important; }
+body { overscroll-behavior:none; }
+.shell.editor-shell { height:100dvh; min-height:0 !important; overflow:hidden !important; }
+.editor-shell .topbar { height:58px; min-height:58px; }
+.editor-page { height:calc(100dvh - 58px); padding:0 !important; overflow:hidden !important; }
+.editor-toolbar { height:48px; min-height:48px; flex-shrink:0; }
+.editor-layout {
+  height:calc(100dvh - 106px); min-height:0 !important;
+  overflow:hidden !important;
+}
+.editor-sidebar {
+  height:100%; min-height:0; overflow:hidden !important;
+}
+.sidebar-scroll {
+  flex:1 1 auto; min-height:0; overflow-y:auto !important;
+  overscroll-behavior:contain;
+}
+.editor-canvas-area {
+  height:100%; min-height:0 !important; overflow:hidden !important;
+}
+.editor-canvas {
+  height:100%; min-height:0 !important; overflow:hidden !important;
+  overscroll-behavior:none; touch-action:pan-x pan-y;
+}
+.svg-stage,.compare-panes img {
+  transform-origin:center center;
+  will-change:transform;
+}
+.compare-panes { min-height:100%; }
+.canvas-status,.minimal-process-info,.minimal-settings,.editor-footnote,.footer {
+  display:none !important;
+}
+.processing-overlay { position:absolute; inset:0; }
+@media(max-width:800px) {
+  .editor-layout { height:calc(100dvh - 106px); }
+  .editor-sidebar { max-height:38dvh; }
+  .editor-canvas-area { height:calc(62dvh - 0px); }
+  .editor-canvas { height:100%; }
+}
