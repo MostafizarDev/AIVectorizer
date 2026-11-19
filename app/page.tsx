@@ -32,6 +32,7 @@ function readShapes(svg: string) {
 
 export default function Home() {
   const inputRef = useRef<HTMLInputElement>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [sourceUrl, setSourceUrl] = useState("");
   const [mode, setMode] = useState("graphic");
@@ -144,6 +145,18 @@ export default function Home() {
     a.download = (file?.name.replace(/\.[^.]+$/, "") || "artwork") + "-vector.svg"; a.click();
     window.setTimeout(() => URL.revokeObjectURL(url), 1000);
   }
+  function fitToScreen() {
+    if (!svg || !canvasRef.current) { setZoom(1); return; }
+    try {
+      const root = parse(svg).documentElement;
+      const viewBox = root.getAttribute("viewBox")?.trim().split(/[ ,]+/).map(Number);
+      const width = viewBox && viewBox.length === 4 ? viewBox[2] : Number.parseFloat(root.getAttribute("width") || "1000");
+      const height = viewBox && viewBox.length === 4 ? viewBox[3] : Number.parseFloat(root.getAttribute("height") || "1000");
+      const area = canvasRef.current;
+      const fit = Math.min((area.clientWidth - 64) / width, (area.clientHeight - 64) / height);
+      setZoom(Math.max(0.1, Math.min(5, Number.isFinite(fit) ? fit : 1)));
+    } catch { setZoom(1); }
+  }
   function reset() {
     setFile(null); setSvg(""); setHistory([]); setFuture([]); setError(""); setSelectedId(""); setZoom(1);
     setSourceUrl(old => { if (old) URL.revokeObjectURL(old); return ""; });
@@ -180,7 +193,7 @@ export default function Home() {
 
       <div className="editor-toolbar">
         <div className="view-tabs"><button className={view==="compare"?"active":""} onClick={() => setView("compare")} disabled={!file}>Compare</button><button className={view==="vector"?"active":""} onClick={() => setView("vector")} disabled={!svg}>Vector</button><button className={view==="outlines"?"active":""} onClick={() => setView("outlines")} disabled={!svg}>Outlines</button></div>
-        <div className="zoom-tools"><button title="Zoom out" onClick={() => setZoom(z => Math.max(.1, +(z-.1).toFixed(2)))} disabled={!svg}><ZoomOut size={17}/></button><span>{Math.round(zoom*100)}%</span><button title="Zoom in" onClick={() => setZoom(z => Math.min(5, +(z+.1).toFixed(2)))} disabled={!svg}><ZoomIn size={17}/></button><button title="Fit to screen" onClick={() => setZoom(1)} disabled={!svg}><Maximize size={16}/></button><button title="Actual size" onClick={() => setZoom(1)} disabled={!svg}>1:1</button></div>
+        <div className="zoom-tools"><button title="Zoom out" onClick={() => setZoom(z => Math.max(.1, +(z-.1).toFixed(2)))} disabled={!svg}><ZoomOut size={17}/></button><span>{Math.round(zoom*100)}%</span><button title="Zoom in" onClick={() => setZoom(z => Math.min(5, +(z+.1).toFixed(2)))} disabled={!svg}><ZoomIn size={17}/></button><button title="Fit to screen" onClick={fitToScreen} disabled={!svg}><Maximize size={16}/></button><button title="Actual size" onClick={() => setZoom(1)} disabled={!svg}>1:1</button></div>
         <div className="toolbar-spacer"/><button className="toolbar-icon" onClick={undo} disabled={!history.length}><Undo2 size={16}/></button><button className="toolbar-icon" onClick={redo} disabled={!future.length}><Redo2 size={16}/></button><button className="download-toolbar" onClick={download} disabled={!svg}><ArrowDownToLine size={15}/> Download</button>
       </div>
 
@@ -205,7 +218,7 @@ export default function Home() {
 
         <section className="editor-canvas-area">
           {!file ? <div className={"upload-zone editor-upload "+(dragging?"dragging":"")} onDragOver={e => {e.preventDefault();setDragging(true);}} onDragLeave={() => setDragging(false)} onDrop={onDrop}><div className="upload-icon"><CloudUpload size={27}/></div><h3>Drop your image here</h3><p>PNG, JPG or WebP · Up to 20 MB</p><button className="primary-btn" onClick={() => inputRef.current?.click()}>Choose image</button></div> :
-            <div className={"editor-canvas "+bg} onClick={selectShape}>
+            <div ref={canvasRef} className={"editor-canvas "+bg} onClick={selectShape}>
               {view==="compare" ? <div className="compare-panes"><div><span className="canvas-label">Original</span><img src={sourceUrl} alt="Original artwork" style={{transform:"scale("+zoom+")"}}/></div><div><span className="canvas-label">Vector</span>{svg ? <div className="svg-stage" style={{transform:"scale("+zoom+")"}} dangerouslySetInnerHTML={{__html:renderedSvg}}/> : <div className="empty-vector">Vectorize image to see result</div>}</div></div> :
               svg ? <div className={"svg-stage "+(view==="outlines"?"outlines":"")} style={{transform:"scale("+zoom+")"}} dangerouslySetInnerHTML={{__html:renderedSvg}}/> : <div className="empty-vector">Click Vectorize image to create SVG.</div>}
             </div>}
