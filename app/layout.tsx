@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AIVectorizer — Professional Image to Vector",
+  title: "AIVectorizer Studio — Advanced Vector Workspace",
   description:
-    "Convert raster images into editable SVG artwork with browser-first vectorization tools.",
+    "A professional workspace for image enhancement, color reduction, vectorization and SVG editing.",
   applicationName: "AIVectorizer"
 };
 
