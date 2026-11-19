@@ -2,9 +2,8 @@
 
 import { ChangeEvent, DragEvent, useEffect, useRef, useState } from "react";
 import {
-  ArrowDownToLine, ArrowLeftRight, Check, ChevronDown, CircleHelp,
-  CloudUpload, FileImage, Image as ImageIcon, LoaderCircle, MousePointer2,
-  RefreshCw, ShieldCheck, Sparkles, WandSparkles, Zap
+  ArrowDownToLine, Check, CircleHelp, CloudUpload, FileImage, LoaderCircle,
+  RefreshCw, ShieldCheck, Sparkles, WandSparkles
 } from "lucide-react";
 
 type Mode = "graphic" | "photo";
@@ -18,9 +17,9 @@ export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [sourceUrl, setSourceUrl] = useState("");
   const [mode, setMode] = useState<Mode>("graphic");
-  const [colors, setColors] = useState(16);
-  const [detail, setDetail] = useState(70);
-  const [speckle, setSpeckle] = useState(4);
+  const [colors, setColors] = useState(24);
+  const [detail, setDetail] = useState(88);
+  const [speckle, setSpeckle] = useState(2);
   const [corner, setCorner] = useState("medium");
   const [result, setResult] = useState<VectorResult | null>(null);
   const [busy, setBusy] = useState(false);
@@ -138,7 +137,7 @@ export default function Home() {
           <div>AIVectorizer<small>VECTOR STUDIO</small></div>
         </div>
         <div className="top-actions">
-          <span className="status"><span style={{ marginRight: 6 }}>●</span> Browser-first processing</span>
+          <span className="status"><span style={{ marginRight: 6 }}>●</span> Server-side processing</span>
           <button className="ghost-btn" onClick={() => inputRef.current?.click()}>New image</button>
         </div>
       </header>
@@ -148,7 +147,7 @@ export default function Home() {
           <div>
             <div className="eyebrow">Raster to vector workspace</div>
             <h1>Make every pixel a path.</h1>
-            <p>Turn images into editable vector artwork. Fast, private, and built for creative workflows.</p>
+            <p>Turn images into editable vector artwork. Create smoother, cleaner SVG artwork with adjustable tracing controls.</p>
           </div>
           <div className="hero-note">PRO WORKSPACE<br />Graphic &amp; photo vectorization</div>
         </div>
@@ -179,7 +178,7 @@ export default function Home() {
                     <h3>Drop your image here</h3>
                     <p>Or browse files from your device<br />PNG, JPG or WebP · Up to 20 MB</p>
                     <button className="primary-btn" onClick={() => inputRef.current?.click()}>Choose image</button>
-                    <div className="file-meta">Your image stays in this browser in the current version.</div>
+                    <div className="file-meta">Images are sent securely for temporary processing and are not saved to a user library.</div>
                   </div>
                 ) : compare === "original" || !result ? (
                   <div className="preview-frame">
@@ -220,7 +219,7 @@ export default function Home() {
             </section>
             <section className="card info-strip">
               <ShieldCheck size={16} color="#71d2a4" />
-              <span>Privacy-first workflow: image processing is designed to run locally in your browser. No account required for this initial version.</span>
+              <span>Processing runs on the AIVectorizer server. Uploaded images are handled for conversion and are not stored as projects.</span>
             </section>
           </div>
 
@@ -270,7 +269,7 @@ export default function Home() {
               </button>
               <button className="secondary-btn" disabled={!file || busy} onClick={reset}>Clear workspace</button>
             </div>
-            <div className="help" style={{ marginTop: 15, display: "flex", gap: 6 }}><CircleHelp size={13} /> Processing options will be tuned as the vector engine matures.</div>
+            <div className="help" style={{ marginTop: 15, display: "flex", gap: 6 }}><CircleHelp size={13} /> Higher detail preserves more small regions; lower speckle removes isolated fragments.</div>
           </aside>
         </div>
       </section>
