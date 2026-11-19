@@ -37,6 +37,9 @@ export default function Home() {
   const [sourceUrl, setSourceUrl] = useState("");
   const [mode, setMode] = useState("graphic");
   const [colors, setColors] = useState(24);
+  const [upscale, setUpscale] = useState(2);
+  const [mergeStrength, setMergeStrength] = useState(22);
+  const [processInfo, setProcessInfo] = useState("");
   const [detail, setDetail] = useState(88);
   const [speckle, setSpeckle] = useState(2);
   const [corner, setCorner] = useState("medium");
@@ -83,8 +86,14 @@ export default function Home() {
       const data = new FormData();
       data.append("file", file); data.append("mode", mode); data.append("colors", String(colors));
       data.append("detail", String(detail)); data.append("speckle", String(speckle)); data.append("corner", corner);
+      data.append("upscale", String(upscale)); data.append("mergeStrength", String(mergeStrength));
       const response = await fetch("/api/vectorize", { method: "POST", body: data });
       if (!response.ok) { const body = await response.json().catch(() => ({})); throw new Error(body.error || "Vectorization failed."); }
+      const originalSize = response.headers.get("X-AV-Original-Dimensions") || "—";
+      const processedSize = response.headers.get("X-AV-Processed-Dimensions") || "—";
+      const scaleUsed = response.headers.get("X-AV-Upscale-Factor") || "—";
+      const mergedColors = response.headers.get("X-AV-Colors-Merged") || "0";
+      setProcessInfo("Source " + originalSize + " → enhanced " + processedSize + " · " + scaleUsed + "× resampling · " + mergedColors + " fill instances merged");
       const next = annotate(await response.text());
       const testUrl = URL.createObjectURL(new Blob([next], { type: "image/svg+xml" }));
       try {
@@ -158,7 +167,7 @@ export default function Home() {
     } catch { setZoom(1); }
   }
   function reset() {
-    setFile(null); setSvg(""); setHistory([]); setFuture([]); setError(""); setSelectedId(""); setZoom(1);
+    setFile(null); setSvg(""); setHistory([]); setFuture([]); setError(""); setSelectedId(""); setZoom(1); setProcessInfo("");
     setSourceUrl(old => { if (old) URL.revokeObjectURL(old); return ""; });
   }
   function selectShape(e: MouseEvent<HTMLDivElement>) {
@@ -228,9 +237,9 @@ export default function Home() {
         </section>
       </div>
 
-      <section className="card settings editor-settings"><div className="settings-heading"><div><div className="eyebrow">Vector engine</div><h2>Vectorization settings</h2></div><button className="secondary-btn" onClick={reset}><RotateCcw size={13}/> Clear workspace</button></div>
+      <section className="pipeline-card"><div className="pipeline-heading"><div><div className="eyebrow">Multi-stage processing</div><h2>Enhance first. Vectorize second.</h2><p>Image enhancement → palette reduction → color merge → SVG tracing</p></div><span className="pipeline-badge">QUALITY PIPELINE</span></div><div className="pipeline-steps"><div><b>01</b><strong>Upscale &amp; sharpen</strong><small>High-quality Lanczos resampling</small></div><div><b>02</b><strong>Reduce colors</strong><small>Build a cleaner limited palette</small></div><div><b>03</b><strong>Merge similar fills</strong><small>Combine near-identical colors</small></div><div><b>04</b><strong>Trace to SVG</strong><small>Generate editable vector paths</small></div></div>{processInfo && <div className="process-info">{processInfo}</div>}</section>\n      <section className="card settings editor-settings"><div className="settings-heading"><div><div className="eyebrow">Vector engine</div><h2>Vectorization settings</h2></div><button className="secondary-btn" onClick={reset}><RotateCcw size={13}/> Clear workspace</button></div>
         <div className="settings-grid"><div className="control"><div className="control-top">Mode</div><div className="mode-switch full"><button className={mode==="graphic"?"active":""} onClick={() => setMode("graphic")}>Graphic</button><button className={mode==="photo"?"active":""} onClick={() => setMode("photo")}>Photo</button></div></div>
-          <div className="control"><div className="control-top"><label htmlFor="colors">Color count</label><output>{colors}</output></div><input id="colors" type="range" min="2" max="64" value={colors} onChange={e => setColors(Number(e.target.value))}/></div>
+          <div className="control"><div className="control-top"><label htmlFor="upscale">Enhancement upscale</label><output>{upscale}×</output></div><select id="upscale" value={upscale} onChange={e => setUpscale(Number(e.target.value))}><option value={1}>1× · Original size</option><option value={2}>2× · Recommended</option><option value={3}>3× · Maximum detail</option></select><small className="control-hint">Upscaling improves resampling quality, not lost source detail.</small></div>\n          <div className="control"><div className="control-top"><label htmlFor="merge">Color merge strength</label><output>{mergeStrength}</output></div><input id="merge" type="range" min="0" max="80" value={mergeStrength} onChange={e => setMergeStrength(Number(e.target.value))}/><small className="control-hint">Higher values merge more similar SVG fill colors.</small></div>\n          <div className="control"><div className="control-top"><label htmlFor="colors">Color count</label><output>{colors}</output></div><input id="colors" type="range" min="2" max="64" value={colors} onChange={e => setColors(Number(e.target.value))}/></div>
           <div className="control"><div className="control-top"><label htmlFor="detail">Detail level</label><output>{detail}%</output></div><input id="detail" type="range" min="0" max="100" value={detail} onChange={e => setDetail(Number(e.target.value))}/></div>
           <div className="control"><div className="control-top"><label htmlFor="speckle">Speckle reduction</label><output>{speckle}</output></div><input id="speckle" type="range" min="0" max="20" value={speckle} onChange={e => setSpeckle(Number(e.target.value))}/></div>
           <div className="control"><div className="control-top"><label htmlFor="corner">Tracing corners</label></div><select id="corner" value={corner} onChange={e => setCorner(e.target.value)}><option value="sharp">Sharp</option><option value="medium">Balanced</option><option value="smooth">Smooth</option></select></div>
