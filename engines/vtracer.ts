@@ -1,3 +1,5 @@
+import { convertBuffer, type Options } from "@visioncortex/vtracer";
+
 export type VectorizeOptions = {
   mode: "graphic" | "photo";
   colors: number;
@@ -12,62 +14,56 @@ export type VectorizeOutput = {
   height: number;
 };
 
-type VTracerModule = {
-  default?: (options?: Record<string, unknown>) => Promise<unknown>;
-  imageToSVG?: (data: Uint8Array, options?: Record<string, unknown>) => string | Promise<string>;
-  image_to_svg?: (data: Uint8Array, options?: Record<string, unknown>) => string | Promise<string>;
-};
-
 /**
- * Browser-side adapter for the VTracer WebAssembly package.
- * The dynamic import keeps the vector engine out of the initial page bundle.
+ * Vectorizes an uploaded image using VTracer's WebAssembly-powered Node API.
+ *
+ * This adapter currently runs inside a Next.js browser-facing route in the
+ * same-origin app deployment. A later performance pass can move the WASM call
+ * into a dedicated worker/bundled browser target without changing the UI API.
  */
 export async function vectorizeImage(
   file: File,
   options: VectorizeOptions
 ): Promise<VectorizeOutput> {
-  const buffer = await file.arrayBuffer();
-  const bytes = new Uint8Array(buffer);
-
-  let engine: VTracerModule;
-  try {
-    engine = (await import("@vtracer/node")) as unknown as VTracerModule;
-  } catch {
-    throw new Error(
-      "The vector engine could not be loaded in this browser build. The VTracer browser adapter needs to be configured for the published WASM bundle."
-    );
-  }
-
-  const config = {
-    color_mode: options.mode === "photo" ? "color" : "color",
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  const engineOptions: Options = {
+    preset: options.mode === "photo" ? "photo" : "poster",
+    clustering: "color-cluster",
     hierarchical: "stacked",
     mode: "spline",
-    filter_speckle: Math.max(0, Math.round(options.speckle)),
-    corner_threshold: options.corner === "sharp" ? 60 : options.corner === "smooth" ? 150 : 100,
-    length_threshold: Math.max(3, 10 - options.detail / 15),
-    max_iterations: 10,
-    splice_threshold: 45,
-    path_precision: 3,
-    color_precision: options.mode === "photo" ? 8 : 6,
-    layer_difference: Math.max(8, Math.round((100 - options.detail) / 5)),
-    color_count: options.colors
+    filterSpeckle: Math.max(0, Math.min(128, Math.round(options.speckle))),
+    colorPrecision: options.mode === "photo" ? 8 : 6,
+    layerDifference: Math.max(0, Math.min(255, Math.round((100 - options.detail) * 1.8))),
+    cornerThreshold: options.corner === "sharp" ? 35 : options.corner === "smooth" ? 100 : 60,
+    lengthThreshold: 4,
+    maxIterations: 10,
+    spliceThreshold: 45,
+    pathPrecision: 3,
+    maxColors: Math.max(2, Math.min(64, Math.round(options.colors))),
+    optimize: 1
   };
 
-  const convert = engine.imageToSVG ?? engine.image_to_svg;
-  if (!convert) {
-    throw new Error(
-      "The installed VTracer package does not expose the expected browser conversion API yet. The engine adapter must be aligned with the chosen WASM build."
-    );
+  let svg: string;
+  try {
+    svg = convertBuffer(bytes, engineOptions);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : "Unknown VTracer error";
+    throw new Error(`Vectorization failed: ${reason}`);
   }
 
-  const svg = await convert(bytes, config);
   const dimensions = await getImageDimensions(file);
-  return { svg: normalizeSvg(String(svg)), width: dimensions.width, height: dimensions.height };
+  return {
+    svg: normalizeSvg(svg),
+    width: dimensions.width,
+    height: dimensions.height
+  };
 }
 
 function normalizeSvg(svg: string): string {
-  if (!svg.includes("<svg")) throw new Error("The vector engine returned an invalid SVG document.");
-  return svg.replace(/<\?xml[^>]*\?>/g, "").trim();
+  if (!svg.includes("<svg")) {
+    throw new Error("The vector engine returned an invalid SVG document.");
+  }
+  return svg.replace(/<\\?xml[^>]*\\?>/g, "").trim();
 }
 
 function getImageDimensions(file: File): Promise<{ width: number; height: number }> {
