@@ -48,11 +48,11 @@ export async function POST(request: NextRequest) {
       })
       .toColourspace("srgb");
 
-    // Graphic artwork benefits from edge cleanup before palette reduction.
-    // A small median pass removes isolated pixel noise; a very light blur
-    // softens stair-stepped raster edges before the vector engine fits paths.
+    // Flat artwork must keep exact color regions. Blur/sharpen creates
+    // transitional pixels along borders, which become unwanted fringe shapes.
+    // Keep graphic edges untouched before deterministic palette assignment.
     pipeline = mode === "graphic"
-      ? pipeline.median(3).blur(0.35).sharpen({ sigma: 0.55, m1: 0.3, m2: 0.9 })
+      ? pipeline
       : pipeline.sharpen({ sigma: 0.45, m1: 0.25, m2: 0.8 });
 
     // Stage 2: reduce near-duplicate colors before tracing.
@@ -61,7 +61,7 @@ export async function POST(request: NextRequest) {
       colours: colors,
       quality: 100,
       effort: 7,
-      dither: mode === "photo" ? 0.65 : 0.25
+      dither: mode === "photo" ? 0.65 : 0
     }).toBuffer();
 
     const preparedMeta = await sharp(prepared).metadata();
@@ -75,16 +75,16 @@ export async function POST(request: NextRequest) {
       clustering: "color-cluster",
       hierarchical: mode === "photo" ? "stacked" : "cutout",
       mode: "spline",
-      filterSpeckle: mode === "photo" ? speckle : Math.max(speckle, 3),
+      filterSpeckle: mode === "photo" ? speckle : Math.max(speckle, 4),
       colorPrecision: mode === "photo" ? 8 : 7,
       layerDifference,
       cornerThreshold: corner === "sharp" ? 35 : corner === "smooth" ? 110 : 78,
-      lengthThreshold: mode === "photo" ? 4 : 6,
+      lengthThreshold: mode === "photo" ? 4 : 8,
       maxIterations: 12,
       spliceThreshold: mode === "photo" ? 45 : 60,
       simplify: mode === "photo"
         ? (detail >= 85 ? 0.5 : detail >= 60 ? 1 : 1.8)
-        : (detail >= 85 ? 1.15 : detail >= 60 ? 1.5 : 2.0),
+        : (detail >= 85 ? 0.65 : detail >= 60 ? 0.9 : 1.2),
       maxColors: colors,
       optimize: 2,
       pathPrecision: 3
