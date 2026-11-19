@@ -715,3 +715,107 @@ button:focus-visible,input:focus-visible,select:focus-visible { outline:2px soli
   .view-tabs button { padding:7px 9px; }
   .toolbar-vectorize,.download-toolbar { padding:7px 9px; }
 }
+
+
+/* Reference layout: compact Vectorizer.AI-style editor workspace */
+.editor-page { max-width:none; padding:0 0 24px; }
+.editor-heading {
+  display:none !important;
+}
+.editor-toolbar {
+  position:relative; z-index:3; width:max-content; max-width:100%;
+  min-height:48px; margin:0; padding:7px 10px;
+  border-radius:0 0 7px 0; border:1px solid #26334b !important;
+  background:#111b30 !important; box-shadow:0 5px 16px rgba(0,0,0,.16) !important;
+}
+.view-tabs { background:#0b1426 !important; border-color:#293854 !important; }
+.view-tabs button { color:#b9c6da !important; }
+.view-tabs button.active { background:#1b3158 !important; color:#72aaff !important; border-color:#315b99 !important; }
+.editor-toolbar .zoom-tools { display:flex !important; }
+.editor-toolbar .toolbar-icon { display:none !important; }
+.zoom-tools { border-left:0 !important; padding-left:5px; }
+.zoom-tools button { color:#79aaff !important; }
+.zoom-tools span { color:#d5dfed !important; }
+.editor-layout {
+  display:grid !important; grid-template-columns:286px minmax(0,1fr) !important;
+  min-height:calc(100vh - 108px); border:0 !important; border-radius:0 !important;
+  background:#0b1220 !important; box-shadow:none !important;
+}
+.editor-sidebar {
+  display:flex !important; flex-direction:column;
+  background:#111b30 !important; border-right:1px solid #26344d !important;
+}
+.sidebar-title {
+  padding:13px 16px 12px; color:#edf3fc !important;
+  font-size:22px; font-weight:650; letter-spacing:-.6px;
+  border:0 !important;
+}
+.sidebar-scroll { padding:0 0 8px; }
+.tool-panel-button {
+  min-height:72px; padding:13px 17px; gap:12px;
+  color:#e0e8f5 !important; border:0 !important;
+  border-top:1px solid rgba(154,177,211,.06) !important;
+  font-size:12px;
+}
+.tool-panel-button svg:first-child { color:#6d9fff !important; }
+.tool-panel-button.active {
+  background:#182844 !important; box-shadow:inset 3px 0 #478df0 !important;
+}
+.panel-chevron { color:#8ea2c1 !important; }
+.panel-content {
+  padding:7px 16px 14px 48px; background:#0d172a;
+  color:#b7c4d8 !important; font-size:10px;
+}
+.panel-content p { color:#aab8ce !important; }
+.background-options button,.panel-action {
+  color:#d9e4f5 !important; background:#1b2a43 !important;
+  border:1px solid #344766 !important; border-radius:5px;
+}
+.background-options button.selected { background:#233d65 !important; border-color:#548bd5 !important; }
+.palette-row code,.selected-color { color:#e1e9f5 !important; }
+.region-list button { color:#d3deef !important; }
+.region-list button.chosen { background:#20385d !important; }
+.nudge-grid button { background:#1b2a43 !important; border-color:#344766 !important; color:#e1eaf7 !important; }
+.sidebar-history { margin-top:auto; padding:10px 15px 5px; border-color:#293650 !important; }
+.sidebar-history button {
+  color:#c2d0e4 !important; background:#15233b !important;
+  border:1px solid #2a3b59 !important; border-radius:6px;
+}
+.sidebar-download { margin:0 15px 15px; min-height:38px; background:#12bd16 !important; border-color:#0fae13 !important; }
+.editor-canvas-area {
+  min-width:0; min-height:calc(100vh - 108px);
+  background:#9299a3 !important; position:relative;
+}
+.editor-canvas {
+  min-height:calc(100vh - 142px); padding:34px;
+  background-color:#9299a3 !important;
+}
+.editor-canvas.checker {
+  background-color:#9299a3 !important;
+  background-image:linear-gradient(45deg,#a5abb3 25%,transparent 25%),linear-gradient(-45deg,#a5abb3 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#a5abb3 75%),linear-gradient(-45deg,transparent 75%,#a5abb3 75%) !important;
+  background-size:20px 20px; background-position:0 0,0 10px,10px -10px,-10px 0;
+}
+.compare-panes > div { background:#fff !important; border:1px solid #d9dce1 !important; }
+.canvas-status { background:#111b30 !important; color:#c0ccdf !important; border-color:#293650 !important; }
+.editor-canvas.white { background:#fff !important; }
+.editor-canvas.black { background:#050505 !important; }
+.minimal-settings { max-width:calc(100% - 30px); margin:12px 15px 0; }
+.editor-footnote { color:#7c899d !important; }
+@media(max-width:800px) {
+  .editor-layout { grid-template-columns:1fr !important; }
+  .editor-sidebar { border-right:0 !important; border-bottom:1px solid #26344d !important; }
+  .sidebar-title { font-size:17px; }
+  .sidebar-scroll { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); max-height:220px; overflow:auto; }
+  .tool-panel-button { min-height:52px; padding:9px 12px; }
+  .panel-content { grid-column:1/-1; }
+  .editor-canvas-area { min-height:55vh; }
+  .editor-canvas { min-height:55vh; }
+}
+@media(max-width:520px) {
+  .editor-toolbar { width:100%; border-radius:0; flex-wrap:wrap; }
+  .editor-toolbar .view-tabs { order:0; }
+  .editor-toolbar .zoom-tools { order:1; }
+  .editor-toolbar .toolbar-spacer { display:none; }
+  .toolbar-vectorize { order:2; }
+  .download-toolbar { order:3; }
+}
