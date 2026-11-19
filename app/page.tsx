@@ -227,7 +227,7 @@ export default function Home() {
 
         <section className="editor-canvas-area">
           {!file ? <div className={"upload-zone editor-upload "+(dragging?"dragging":"")} onDragOver={e => {e.preventDefault();setDragging(true);}} onDragLeave={() => setDragging(false)} onDrop={onDrop}><div className="upload-icon"><CloudUpload size={27}/></div><h3>Drop your image here</h3><p>PNG, JPG or WebP · Up to 20 MB</p><button className="primary-btn" onClick={() => inputRef.current?.click()}>Choose image</button></div> :
-            <div ref={canvasRef} className={"editor-canvas "+bg} onClick={selectShape}>
+            <div ref={canvasRef} className={"editor-canvas "+bg} onClick={selectShape} onWheel={e => { e.preventDefault(); setZoom(z => Math.max(0.1, Math.min(5, Number((z * (e.deltaY < 0 ? 1.1 : 0.9)).toFixed(2))))); }}>
               {view==="compare" ? <div className="compare-panes"><div><span className="canvas-label">Original</span><img src={sourceUrl} alt="Original artwork" style={{transform:"scale("+zoom+")"}}/></div><div><span className="canvas-label">Vector</span>{svg ? <div className="svg-stage" style={{transform:"scale("+zoom+")"}} dangerouslySetInnerHTML={{__html:renderedSvg}}/> : <div className="empty-vector">Vectorize image to see result</div>}</div></div> :
               svg ? <div className={"svg-stage "+(view==="outlines"?"outlines":"")} style={{transform:"scale("+zoom+")"}} dangerouslySetInnerHTML={{__html:renderedSvg}}/> : <div className="empty-vector">Click Vectorize image to create SVG.</div>}
             </div>}
