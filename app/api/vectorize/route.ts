@@ -116,33 +116,63 @@ function clampNumber(value: FormDataEntryValue | null, fallback: number, min: nu
 
 function mergeSimilarFills(svg: string, strength: number) {
   if (strength <= 0) return { svg, mergedCount: 0 };
-  const threshold = strength * 1.35;
-  const representatives: Array<{ color: string; rgb: [number, number, number] }> = [];
-  const replacements = new Map<string, string>();
-  const colors = Array.from(svg.matchAll(/fill=["'](#[0-9a-fA-F]{6})["']/g), match => match[1].toLowerCase());
-  for (const color of colors) {
-    if (replacements.has(color)) continue;
-    const rgb = hexToRgb(color);
-    let nearest: { color: string; rgb: [number, number, number] } | undefined;
-    let nearestDistance = Number.POSITIVE_INFINITY;
-    for (const candidate of representatives) {
-      const distance = Math.sqrt(
-        Math.pow(rgb[0] - candidate.rgb[0], 2) +
-        Math.pow(rgb[1] - candidate.rgb[1], 2) +
-        Math.pow(rgb[2] - candidate.rgb[2], 2)
-      );
-      if (distance < nearestDistance) { nearestDistance = distance; nearest = candidate; }
-    }
-    if (nearest && nearestDistance <= threshold) replacements.set(color, nearest.color);
-    else { representatives.push({ color, rgb }); replacements.set(color, color); }
+
+  // Count how often each fill is used. Frequently used colors are the
+  // artwork's main palette and are protected; only low-frequency colors
+  // are candidates for merging.
+  const matches = Array.from(svg.matchAll(/<[^>]+\\sfill=["'](#[0-9a-fA-F]{6})["'][^>]*>/g));
+  const counts = new Map<string, number>();
+  for (const match of matches) {
+    const color = match[1].toLowerCase();
+    counts.set(color, (counts.get(color) || 0) + 1);
   }
+  const ranked = Array.from(counts, ([color, count]) => ({ color, count, rgb: hexToRgb(color) }))
+    .sort((a, b) => b.count - a.count);
+  if (ranked.length < 3) return { svg, mergedCount: 0 };
+
+  const totalShapes = ranked.reduce((sum, item) => sum + item.count, 0);
+  // 0–80 slider maps to 0–8% of shape occurrences. Default 22 = 2.2%.
+  const smallColorLimit = totalShapes * (strength / 1000);
+  const protectedColors = ranked.filter((item, index) =>
+    index < 2 || item.count >= smallColorLimit
+  );
+  const minorColors = ranked.filter(item => !protectedColors.includes(item));
+  const replacements = new Map<string, string>();
+
+  for (const minor of minorColors) {
+    let nearest = protectedColors[0];
+    let nearestDistance = Number.POSITIVE_INFINITY;
+    for (const major of protectedColors) {
+      const distance = colorDistance(minor.rgb, major.rgb);
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearest = major;
+      }
+    }
+    // Avoid turning a genuinely different accent color into an unrelated
+    // main color. Similar small shades are merged; distinct colors survive.
+    if (nearestDistance <= 105) replacements.set(minor.color, nearest.color);
+  }
+
   let mergedCount = 0;
-  const output = svg.replace(/fill=(["'])(#[0-9a-fA-F]{6})\1/g, (whole, quote: string, color: string) => {
-    const replacement = replacements.get(color.toLowerCase()) || color;
-    if (replacement !== color.toLowerCase()) mergedCount++;
-    return "fill=" + quote + replacement + quote;
-  });
+  const output = svg.replace(/(\\sfill=)(["'])(#[0-9a-fA-F]{6})\\2/g,
+    (whole, prefix: string, quote: string, color: string) => {
+      const replacement = replacements.get(color.toLowerCase());
+      if (!replacement) return whole;
+      mergedCount++;
+      return prefix + quote + replacement + quote;
+    });
   return { svg: output, mergedCount };
+}
+
+function colorDistance(a: [number, number, number], b: [number, number, number]) {
+  const rMean = (a[0] + b[0]) / 2;
+  const r = a[0] - b[0], g = a[1] - b[1], bl = a[2] - b[2];
+  return Math.sqrt(
+    (2 + rMean / 256) * r * r +
+    4 * g * g +
+    (2 + (255 - rMean) / 256) * bl * bl
+  );
 }
 
 function hexToRgb(hex: string): [number, number, number] {
