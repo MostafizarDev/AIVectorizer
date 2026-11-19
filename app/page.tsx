@@ -74,11 +74,32 @@ export default function Home() {
     setError("");
     setResult(null);
     try {
-      const { vectorizeImage } = await import("@/engines/vtracer");
-      const output = await vectorizeImage(file, {
-        mode, colors, detail, speckle, corner
+      const form = new FormData();
+      form.append("file", file);
+      form.append("mode", mode);
+      form.append("colors", String(colors));
+      form.append("detail", String(detail));
+      form.append("speckle", String(speckle));
+      form.append("corner", corner);
+
+      const response = await fetch("/api/vectorize", {
+        method: "POST",
+        body: form
       });
-      setResult({ ...output, source: file.name });
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload.error || "Vectorization failed.");
+      }
+      const svg = await response.text();
+      const image = new Image();
+      const svgUrl = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }));
+      await new Promise<void>((resolve, reject) => {
+        image.onload = () => resolve();
+        image.onerror = () => reject(new Error("The vector output could not be previewed."));
+        image.src = svgUrl;
+      });
+      URL.revokeObjectURL(svgUrl);
+      setResult({ svg, width: image.naturalWidth, height: image.naturalHeight, source: file.name });
       setCompare("vector");
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : "Vectorization failed.";
