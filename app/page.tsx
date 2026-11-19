@@ -203,7 +203,7 @@ export default function Home() {
       <div className="editor-toolbar">
         <div className="view-tabs"><button className={view==="compare"?"active":""} onClick={() => setView("compare")} disabled={!file}>Compare</button><button className={view==="vector"?"active":""} onClick={() => setView("vector")} disabled={!svg}>Vector</button><button className={view==="outlines"?"active":""} onClick={() => setView("outlines")} disabled={!svg}>Outlines</button></div>
         <div className="zoom-tools"><button title="Zoom out" onClick={() => setZoom(z => Math.max(.1, +(z-.1).toFixed(2)))} disabled={!svg}><ZoomOut size={17}/></button><span>{Math.round(zoom*100)}%</span><button title="Zoom in" onClick={() => setZoom(z => Math.min(5, +(z+.1).toFixed(2)))} disabled={!svg}><ZoomIn size={17}/></button><button title="Fit to screen" onClick={fitToScreen} disabled={!svg}><Maximize size={16}/></button><button title="Actual size" onClick={() => setZoom(1)} disabled={!svg}>1:1</button></div>
-        <div className="toolbar-spacer"/><button className="toolbar-icon" onClick={undo} disabled={!history.length}><Undo2 size={16}/></button><button className="toolbar-icon" onClick={redo} disabled={!future.length}><Redo2 size={16}/></button><button className="download-toolbar" onClick={download} disabled={!svg}><ArrowDownToLine size={15}/> Download</button>
+        <div className="toolbar-spacer"/><button className="primary-btn toolbar-vectorize" onClick={vectorize} disabled={busy}>{busy ? <><LoaderCircle size={14}/> Processing…</> : <><Sparkles size={14}/> Vectorize</>}</button><button className="download-toolbar" onClick={download} disabled={!svg}><ArrowDownToLine size={15}/> Download SVG</button>
       </div>
 
       <div className="editor-layout">
@@ -237,8 +237,8 @@ export default function Home() {
         </section>
       </div>
 
-      <section className="pipeline-card"><div className="pipeline-heading"><div><div className="eyebrow">Multi-stage processing</div><h2>Enhance first. Vectorize second.</h2><p>Image enhancement → palette reduction → color merge → SVG tracing</p></div><span className="pipeline-badge">QUALITY PIPELINE</span></div><div className="pipeline-steps"><div><b>01</b><strong>Upscale &amp; sharpen</strong><small>High-quality Lanczos resampling</small></div><div><b>02</b><strong>Reduce colors</strong><small>Build a cleaner limited palette</small></div><div><b>03</b><strong>Merge similar fills</strong><small>Combine near-identical colors</small></div><div><b>04</b><strong>Trace to SVG</strong><small>Generate editable vector paths</small></div></div>{processInfo && <div className="process-info">{processInfo}</div>}</section>
-      <section className="card settings editor-settings"><div className="settings-heading"><div><div className="eyebrow">Vector engine</div><h2>Vectorization settings</h2></div><button className="secondary-btn" onClick={reset}><RotateCcw size={13}/> Clear workspace</button></div>
+      {processInfo && <div className="process-info minimal-process-info">{processInfo}</div>}
+      <details className="card settings editor-settings minimal-settings"><summary>Advanced settings</summary><div className="settings-heading"><div><h2>Vectorization settings</h2></div><button className="secondary-btn" onClick={reset}><RotateCcw size={13}/> Clear workspace</button></div>
         <div className="settings-grid"><div className="control"><div className="control-top">Mode</div><div className="mode-switch full"><button className={mode==="graphic"?"active":""} onClick={() => setMode("graphic")}>Graphic</button><button className={mode==="photo"?"active":""} onClick={() => setMode("photo")}>Photo</button></div></div>
           <div className="control"><div className="control-top"><label htmlFor="upscale">Enhancement upscale</label><output>{upscale}×</output></div><select id="upscale" value={upscale} onChange={e => setUpscale(Number(e.target.value))}><option value={1}>1× · Original size</option><option value={2}>2× · Recommended</option><option value={3}>3× · Maximum detail</option></select><small className="control-hint">Upscaling improves resampling quality, not lost source detail.</small></div>
           <div className="control"><div className="control-top"><label htmlFor="merge">Color merge strength</label><output>{mergeStrength}</output></div><input id="merge" type="range" min="0" max="80" value={mergeStrength} onChange={e => setMergeStrength(Number(e.target.value))}/><small className="control-hint">Higher values merge more similar SVG fill colors.</small></div>
@@ -248,8 +248,8 @@ export default function Home() {
           <div className="control"><div className="control-top"><label htmlFor="corner">Tracing corners</label></div><select id="corner" value={corner} onChange={e => setCorner(e.target.value)}><option value="sharp">Sharp</option><option value="medium">Balanced</option><option value="smooth">Smooth</option></select></div>
           <div className="control settings-run"><button className="primary-btn" onClick={vectorize} disabled={busy}>{busy ? <><LoaderCircle size={14}/> Processing…</> : <><Sparkles size={14}/> Vectorize image</>}</button></div>
         </div>
-      </section>
-      <div className="editor-footnote"><ShieldCheck size={14}/> Edits remain in this browser session. Download SVG to save your edited artwork.</div>
+      </details>
+      <div className="editor-footnote"><ShieldCheck size={14}/> Download SVG to save your vector artwork.</div>
     </section>
     <input ref={inputRef} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={onInput}/>
     <footer className="footer"><span>© {new Date().getFullYear()} AIVectorizer Studio</span><span>SVG Editor · Early development</span></footer>
