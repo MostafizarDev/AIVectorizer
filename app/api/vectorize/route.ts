@@ -48,8 +48,11 @@ export async function POST(request: NextRequest) {
       })
       .toColourspace("srgb");
 
+    // Graphic artwork benefits from edge cleanup before palette reduction.
+    // A small median pass removes isolated pixel noise; a very light blur
+    // softens stair-stepped raster edges before the vector engine fits paths.
     pipeline = mode === "graphic"
-      ? pipeline.sharpen({ sigma: 0.7, m1: 0.4, m2: 1.2 })
+      ? pipeline.median(3).blur(0.35).sharpen({ sigma: 0.55, m1: 0.3, m2: 0.9 })
       : pipeline.sharpen({ sigma: 0.45, m1: 0.25, m2: 0.8 });
 
     // Stage 2: reduce near-duplicate colors before tracing.
@@ -72,14 +75,16 @@ export async function POST(request: NextRequest) {
       clustering: "color-cluster",
       hierarchical: mode === "photo" ? "stacked" : "cutout",
       mode: "spline",
-      filterSpeckle: speckle,
+      filterSpeckle: mode === "photo" ? speckle : Math.max(speckle, 3),
       colorPrecision: mode === "photo" ? 8 : 7,
       layerDifference,
-      cornerThreshold: corner === "sharp" ? 35 : corner === "smooth" ? 100 : 60,
-      lengthThreshold: 4,
-      maxIterations: 10,
-      spliceThreshold: 45,
-      simplify: detail >= 85 ? 0.5 : detail >= 60 ? 1 : 1.8,
+      cornerThreshold: corner === "sharp" ? 35 : corner === "smooth" ? 110 : 78,
+      lengthThreshold: mode === "photo" ? 4 : 6,
+      maxIterations: 12,
+      spliceThreshold: mode === "photo" ? 45 : 60,
+      simplify: mode === "photo"
+        ? (detail >= 85 ? 0.5 : detail >= 60 ? 1 : 1.8)
+        : (detail >= 85 ? 1.15 : detail >= 60 ? 1.5 : 2.0),
       maxColors: colors,
       optimize: 2,
       pathPrecision: 3
