@@ -670,3 +670,48 @@ button:focus-visible,input:focus-visible,select:focus-visible { outline:2px soli
   .compare-panes > div { min-height:250px; }
   .pipeline-card,.editor-settings { padding:13px; }
 }
+
+
+/* Minimal workspace: keep only the essential actions visible */
+.editor-page { max-width:1600px; padding:20px clamp(12px,2vw,28px) 30px; }
+.editor-heading { margin-bottom:10px; }
+.editor-heading .eyebrow,.editor-heading h1 { display:none; }
+.editor-heading p { margin:0; font-size:11px; }
+.editor-heading-actions .secondary-btn { display:none; }
+.editor-toolbar { border-radius:5px 5px 0 0; }
+.editor-toolbar .zoom-tools,
+.editor-toolbar .toolbar-icon { display:none !important; }
+.editor-layout { display:block !important; min-height:0; }
+.editor-sidebar { display:none !important; }
+.editor-canvas-area { min-height: min(72vh,780px); }
+.editor-canvas { min-height:min(72vh,780px); }
+.canvas-status span:nth-child(2) { display:none; }
+.pipeline-card { display:none !important; }
+.minimal-process-info { margin:10px 0; padding:8px 10px; font-size:10px; background:#fff; border:1px solid #e2e5e9; border-radius:4px; }
+.minimal-settings {
+  margin-top:12px; padding:0; background:#fff !important;
+  border:1px solid #e0e4e8 !important; border-radius:5px;
+}
+.minimal-settings > summary {
+  cursor:pointer; list-style:none; padding:11px 14px;
+  color:#59636f; font-size:11px; font-weight:600;
+}
+.minimal-settings > summary::-webkit-details-marker { display:none; }
+.minimal-settings > summary::after { content:"＋"; float:right; color:#77828e; }
+.minimal-settings[open] > summary { border-bottom:1px solid #e7eaee; }
+.minimal-settings[open] > summary::after { content:"−"; }
+.minimal-settings .settings-heading { padding:12px 14px 0; margin:0; }
+.minimal-settings .settings-grid { padding:12px 14px 14px; }
+.minimal-settings .settings-run { display:none !important; }
+.toolbar-vectorize { min-height:32px; padding:7px 13px; font-size:10px; }
+.download-toolbar { min-height:32px; padding:7px 12px; font-size:10px; }
+.editor-upload { width:min(560px,92%); min-height:260px; margin:auto; }
+.editor-footnote { justify-content:center; padding:12px 0; font-size:9px; }
+@media(max-width:650px) {
+  .editor-heading { min-height:22px; }
+  .editor-layout { display:block !important; }
+  .editor-canvas-area,.editor-canvas { min-height:55vh; }
+  .editor-toolbar { justify-content:space-between; }
+  .view-tabs button { padding:7px 9px; }
+  .toolbar-vectorize,.download-toolbar { padding:7px 9px; }
+}
