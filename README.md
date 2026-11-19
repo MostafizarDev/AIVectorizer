@@ -2,15 +2,24 @@
 
 A web-based raster-to-vector application focused on editable SVG output.
 
-## Current status
+## Current implementation
 
-The initial Next.js workspace is in place with:
-- Responsive dark workspace UI
+- Responsive vector editor workspace
 - PNG, JPEG, and WebP upload (20 MB application limit)
-- Graphic and photo presets
-- Adjustable color count, detail, speckle reduction, and corner handling
+- Graphic and photo tracing presets
+- Adjustable color count, detail, speckle reduction, and tracing corner settings
 - VTracer-powered SVG conversion endpoint
-- SVG preview and download
+- Compare, Vector, and Outlines views
+- Zoom in, zoom out, fit-to-screen, and 1:1 controls
+- SVG shape selection and region list
+- Palette recoloring for matching fills and selected shapes
+- Delete selected shape and move selected shape with nudge controls
+- Preview background choices and exact-white SVG shape removal
+- Corner join controls, undo/redo history, and SVG download
+
+## Editor limitations
+
+The editor modifies the generated SVG in the browser session. It does not yet provide freehand path-node editing, drag-to-move, grouping, multi-select, true background segmentation, or geometry reconstruction. The Corners panel changes SVG stroke joins only; it does not regenerate Bézier curves. Fit-to-screen is calculated from the SVG dimensions and canvas viewport.
 
 ## Tech stack
 
